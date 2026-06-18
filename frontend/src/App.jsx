@@ -11,34 +11,51 @@ function App() {
   const [selectedSapi, setSelectedSapi] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [lastUpdate, setLastUpdate] = useState("");
+  
+  // State untuk menyimpan Jam Digital Real-time
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("id-ID"));
 
- const fetchData = async () => {
-  try {
-    const res = await axios.get("http://localhost:8080/monitoring-sapi/api/semua_sensor.php");
-    // Memberikan array kosong jika res.data.data tidak terbaca atau undefined
-    setData(res.data.data || []); 
-    setLastUpdate(new Date().toLocaleTimeString("id-ID"));
-  } catch (err) {
-    console.error("Gagal fetch data:", err);
-    setData([]); // Tetap set array kosong jika koneksi ke API gagal/error
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/monitoring-sapi/api/semua_sensor.php");
+      // Memberikan array kosong jika res.data.data tidak terbaca atau undefined
+      setData(res.data.data || []); 
+      setLastUpdate(new Date().toLocaleTimeString("id-ID"));
+    } catch (err) {
+      console.error("Gagal fetch data:", err);
+      setData([]); // Tetap set array kosong jika koneksi ke API gagal/error
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // useEffect 1: Mengambil data sensor berkala dari API setiap 1 menit (60000 ms)
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 2000);
+
+    const interval = setInterval(() => {
+      fetchData();
+    }, 60000); 
+
     return () => clearInterval(interval);
   }, []);
 
-  const normal = data ? data.filter(
-  d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "tenang"
-).length : 0;
+  // useEffect 2: Khusus memperbarui Jam Digital setiap 1 detik agar lancar
+  useEffect(() => {
+    const clockInterval = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString("id-ID"));
+    }, 1000);
 
-const danger = data ? data.filter(
-  d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "stress"
-).length : 0;
+    return () => clearInterval(clockInterval);
+  }, []);
+
+  const normal = data ? data.filter(
+    d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "tenang"
+  ).length : 0;
+
+  const danger = data ? data.filter(
+    d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "stress"
+  ).length : 0;
 
   const warning = data.length - normal - danger;
 
@@ -85,6 +102,7 @@ const danger = data ? data.filter(
       </aside>
 
       <main className="main">
+        {/* BAGIAN TOPBAR YANG SUDAH DIRAPIKAN DAN DIHAPUS DUPLIKASINYA */}
         <div className="topbar">
           <div>
             <h1 className="page-title">
@@ -92,7 +110,7 @@ const danger = data ? data.filter(
               {activeTab === "grafik" && "Grafik Sensor"}
               {activeTab === "riwayat" && "Riwayat Data"}
             </h1>
-            <p className="page-sub">Update terakhir: {lastUpdate}</p>
+            <p className="page-sub">Jam Sistem: {currentTime}</p>
           </div>
           <button className="refresh-btn" onClick={fetchData}>
             Refresh

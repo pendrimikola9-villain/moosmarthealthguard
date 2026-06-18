@@ -12,17 +12,19 @@ function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [lastUpdate, setLastUpdate] = useState("");
 
-  const fetchData = async () => {
-    try {
-      const res = await axios.get("http://localhost/monitoring-sapi/api/semua_sensor.php");
-      setData(res.data.data);
-      setLastUpdate(new Date().toLocaleTimeString("id-ID"));
-    } catch (err) {
-      console.error("Gagal fetch data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchData = async () => {
+  try {
+    const res = await axios.get("http://localhost:8080/monitoring-sapi/api/semua_sensor.php");
+    // Memberikan array kosong jika res.data.data tidak terbaca atau undefined
+    setData(res.data.data || []); 
+    setLastUpdate(new Date().toLocaleTimeString("id-ID"));
+  } catch (err) {
+    console.error("Gagal fetch data:", err);
+    setData([]); // Tetap set array kosong jika koneksi ke API gagal/error
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -30,13 +32,13 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const normal = data.filter(
-    d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "tenang"
-  ).length;
+  const normal = data ? data.filter(
+  d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "tenang"
+).length : 0;
 
-  const danger = data.filter(
-    d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "stress"
-  ).length;
+const danger = data ? data.filter(
+  d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "stress"
+).length : 0;
 
   const warning = data.length - normal - danger;
 

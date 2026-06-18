@@ -1,8 +1,10 @@
 function Riwayat({ data }) {
   const warna = { normal: "#4a7c2f", warning: "#d97706", danger: "#dc2626" };
   const label = { normal: "Normal", warning: "Waspada", danger: "Bahaya" };
-  const stressWarna = { tenang: "#4a7c2f", waspada: "#d97706", stress: "#dc2626" };
-  const stressLabel = { tenang: "Tenang", waspada: "Waspada", stress: "Stress" };
+  
+  // SINKRONISASI: Menyesuaikan dengan data aktual database (rendah, sedang, tinggi)
+  const stressWarna = { rendah: "#4a7c2f", sedang: "#d97706", tinggi: "#dc2626" };
+  const stressLabel = { rendah: "Rendah", sedang: "Sedang", tinggi: "Tinggi" };
 
   return (
     <div className="riwayat-wrap">
@@ -15,7 +17,7 @@ function Riwayat({ data }) {
             <th>Status Suhu</th>
             <th>Detak Jantung</th>
             <th>Status Jantung</th>
-            <th>Tingkat Kestressan</th>
+            <th>Aktivitas & Kestresan</th>
             <th>Timestamp</th>
           </tr>
         </thead>
@@ -28,7 +30,14 @@ function Riwayat({ data }) {
               <td><span className="badge-small" style={{ background: warna[d.status_suhu] }}>{label[d.status_suhu]}</span></td>
               <td><strong>{d.detak_jantung_bpm} bpm</strong></td>
               <td><span className="badge-small" style={{ background: warna[d.status_jantung] }}>{label[d.status_jantung]}</span></td>
-              <td><span className="badge-small" style={{ background: stressWarna[d.level_stress] }}>{stressLabel[d.level_stress]}</span></td>
+              <td>
+                <span style={{ marginRight: "8px", textTransform: "capitalize" }}>
+                  {d.nilai_gerakan || "-"} 
+                </span>
+                <span className="badge-small" style={{ background: stressWarna[d.level_stress] }}>
+                  {stressLabel[d.level_stress] || "Rendah"}
+                </span>
+              </td>
               <td className="timestamp">{d.timestamp}</td>
             </tr>
           ))}

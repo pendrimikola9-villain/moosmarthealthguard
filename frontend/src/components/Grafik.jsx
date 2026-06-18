@@ -6,6 +6,9 @@ function Grafik({ data, selectedSapi, setSelectedSapi }) {
   const suhuChart = useRef(null);
   const jantungChart = useRef(null);
 
+  // SINKRONISASI LABEL: Memetakan teks database (rendah, sedang, tinggi) agar rapi di layar
+  const stressLabel = { rendah: "Rendah", sedang: "Sedang", tinggi: "Tinggi" };
+
   const sapiAktif = selectedSapi
     ? data.find(d => d.cow_id === selectedSapi.cow_id) || data[0]
     : data[0];
@@ -124,8 +127,9 @@ function Grafik({ data, selectedSapi, setSelectedSapi }) {
           </div>
           <div className="detail-card">
             <div>
-              <div className="detail-val" style={{ textTransform: "capitalize" }}>
-                {sapiAktif.level_stress}
+              {/* PERUBAHAN: Memakai objek mapping stressLabel agar teks tampil rapi dengan huruf kapital */}
+              <div className="detail-val">
+                {stressLabel[sapiAktif.level_stress] || "Rendah"}
               </div>
               <div className="detail-label">Tingkat Kestressan</div>
             </div>

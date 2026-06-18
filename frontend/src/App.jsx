@@ -49,12 +49,60 @@ function App() {
     return () => clearInterval(clockInterval);
   }, []);
 
-  const normal = data ? data.filter(
-    d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "tenang"
+  // useEffect 3: Meminta izin notifikasi browser saat aplikasi pertama kali dimuat
+  useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // useEffect 4: Memantau data sapi dan mengirimkan ringkasan pop-up Bahaya & Waspada
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "granted" && data.length > 0) {
+      
+      // 1. Saring sapi yang BAHAYA (Suhu/Jantung danger, atau Kestresan tinggi)
+      const sapiBahaya = data.filter(
+        d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "tinggi"
+      );
+
+      // 2. Saring sapi yang WASPADA (Suhu/Jantung warning, atau Kestresan sedang)
+      const sapiWaspada = data.filter(
+        d => (d.status_suhu === "warning" || d.status_jantung === "warning" || d.level_stress === "sedang") &&
+             !(d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "tinggi")
+      );
+
+      // 3. Kirim notifikasi jika ditemukan ada sapi yang bermasalah
+      if (sapiBahaya.length > 0 || sapiWaspada.length > 0) {
+        
+        // Susun teks detail untuk sapi Bahaya
+        const teksBahaya = sapiBahaya.length > 0 
+          ? `🔴 BAHAYA (${sapiBahaya.length}): ${sapiBahaya.map(s => s.nama).join(", ")}` 
+          : "";
+
+        // Susun teks detail untuk sapi Waspada
+        const teksWaspada = sapiWaspada.length > 0 
+          ? `🟡 WASPADA (${sapiWaspada.length}): ${sapiWaspada.map(s => s.nama).join(", ")}` 
+          : "";
+
+        // Gabungkan pesan teksnya
+        const pesanBody = [teksBahaya, teksWaspada].filter(Boolean).join("\n");
+
+        new Notification("⚠️ PEMBARUAN KESEHATAN KANDANG", {
+          body: pesanBody,
+          icon: "/logo.jpeg",
+          // Menggunakan timestamp unik agar browser tidak menimpa notifikasi jika ada perubahan jumlah sapi
+          tag: `alert-sapi-${sapiBahaya.length}-${sapiWaspada.length}`, 
+        });
+      }
+    }
+  }, [data]);
+
+ const normal = data ? data.filter(
+    d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "rendah"
   ).length : 0;
 
   const danger = data ? data.filter(
-    d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "stress"
+    d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "tinggi"
   ).length : 0;
 
   const warning = data.length - normal - danger;

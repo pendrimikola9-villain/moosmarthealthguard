@@ -1,15 +1,18 @@
 function KartuSapi({ sapi, onClick }) {
+  // SINKRONISASI 1: Menyesuaikan status utama kartu berdasarkan nilai database aktual (tinggi, sedang, rendah)
   const statusUtama =
-    sapi.status_suhu === "danger" || sapi.status_jantung === "danger" || sapi.level_stress === "stress"
+    sapi.status_suhu === "danger" || sapi.status_jantung === "danger" || sapi.level_stress === "tinggi"
       ? "danger"
-      : sapi.status_suhu === "warning" || sapi.status_jantung === "warning" || sapi.level_stress === "waspada"
+      : sapi.status_suhu === "warning" || sapi.status_jantung === "warning" || sapi.level_stress === "sedang"
       ? "warning"
       : "normal";
 
   const warna = { normal: "#4a7c2f", warning: "#d97706", danger: "#dc2626" };
   const bg = { normal: "#f0fdf4", warning: "#fffbeb", danger: "#fef2f2" };
   const label = { normal: "Normal", warning: "Waspada", danger: "Bahaya" };
-  const stressLabel = { tenang: "Tenang", waspada: "Waspada", stress: "Stress" };
+  
+  // SINKRONISASI 2: Menyesuaikan label teks kestresan agar mengikuti isi kolom database
+  const stressLabel = { rendah: "Rendah", sedang: "Sedang", tinggi: "Tinggi" };
 
   return (
     <div
@@ -50,8 +53,12 @@ function KartuSapi({ sapi, onClick }) {
 
       <div className="kartu-aktivitas">
         <span>Tingkat Kestressan</span>
-        <span className="intensitas" style={{ color: warna[statusUtama === "danger" && sapi.level_stress === "stress" ? "danger" : sapi.level_stress === "waspada" ? "warning" : "normal"] }}>
-          {stressLabel[sapi.level_stress]}
+        {/* SINKRONISASI 3: Pewarnaan teks tingkat kestresan berdasarkan nilai aktual */}
+        <span 
+          className="intensitas" 
+          style={{ color: warna[sapi.level_stress === "tinggi" ? "danger" : sapi.level_stress === "sedang" ? "warning" : "normal"] }}
+        >
+          {stressLabel[sapi.level_stress] || "Rendah"}
         </span>
       </div>
       <div className="kartu-footer">Klik untuk lihat grafik</div>

@@ -9,7 +9,7 @@ $user = "root";
 $pass = "";
 $db   = "monitoring_sapi";
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($host, $user, $pass, $db, 3307);
 
 if ($conn->connect_error) {
     http_response_code(500);

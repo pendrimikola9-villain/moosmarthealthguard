@@ -18,12 +18,11 @@ function App() {
   const fetchData = async () => {
     try {
       const res = await axios.get("http://localhost:8080/monitoring-sapi/api/semua_sensor.php");
-      // Memberikan array kosong jika res.data.data tidak terbaca atau undefined
       setData(res.data.data || []); 
       setLastUpdate(new Date().toLocaleTimeString("id-ID"));
     } catch (err) {
       console.error("Gagal fetch data:", err);
-      setData([]); // Tetap set array kosong jika koneksi ke API gagal/error
+      setData([]); 
     } finally {
       setLoading(false);
     }
@@ -60,44 +59,36 @@ function App() {
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "granted" && data.length > 0) {
       
-      // 1. Saring sapi yang BAHAYA (Suhu/Jantung danger, atau Kestresan tinggi)
       const sapiBahaya = data.filter(
         d => d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "tinggi"
       );
 
-      // 2. Saring sapi yang WASPADA (Suhu/Jantung warning, atau Kestresan sedang)
       const sapiWaspada = data.filter(
         d => (d.status_suhu === "warning" || d.status_jantung === "warning" || d.level_stress === "sedang") &&
              !(d.status_suhu === "danger" || d.status_jantung === "danger" || d.level_stress === "tinggi")
       );
 
-      // 3. Kirim notifikasi jika ditemukan ada sapi yang bermasalah
       if (sapiBahaya.length > 0 || sapiWaspada.length > 0) {
-        
-        // Susun teks detail untuk sapi Bahaya
         const teksBahaya = sapiBahaya.length > 0 
           ? `🔴 BAHAYA (${sapiBahaya.length}): ${sapiBahaya.map(s => s.nama).join(", ")}` 
           : "";
 
-        // Susun teks detail untuk sapi Waspada
         const teksWaspada = sapiWaspada.length > 0 
           ? `🟡 WASPADA (${sapiWaspada.length}): ${sapiWaspada.map(s => s.nama).join(", ")}` 
           : "";
 
-        // Gabungkan pesan teksnya
         const pesanBody = [teksBahaya, teksWaspada].filter(Boolean).join("\n");
 
         new Notification("⚠️ PEMBARUAN KESEHATAN KANDANG", {
           body: pesanBody,
           icon: "/logo.jpeg",
-          // Menggunakan timestamp unik agar browser tidak menimpa notifikasi jika ada perubahan jumlah sapi
           tag: `alert-sapi-${sapiBahaya.length}-${sapiWaspada.length}`, 
         });
       }
     }
   }, [data]);
 
- const normal = data ? data.filter(
+  const normal = data ? data.filter(
     d => d.status_suhu === "normal" && d.status_jantung === "normal" && d.level_stress === "rendah"
   ).length : 0;
 
@@ -110,19 +101,17 @@ function App() {
   return (
     <div className="app">
       <aside className="sidebar">
-        <div className="sidebar-logo" style={{ display: "flex", justifyContent: "center" }}>
-          <img
-            src="/logo.jpeg"
-            alt="MooSmartHealthGuard"
-            style={{
-              width: "120px",
-              height: "120px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "3px solid rgba(255,255,255,0.3)",
-            }}
-          />
+        {/* HTML BARU: Menggunakan wrapper container bulat dan memisahkan teks judul ke luar logo */}
+        <div className="sidebar-logo">
+          <div className="logo-image-container">
+            <img src="/logo.jpeg" alt="MooSmartHealthGuard" />
+          </div>
+          <div className="sidebar-title">
+            <h2>MooSmart</h2>
+            <p>Health Guard</p>
+          </div>
         </div>
+        
         <nav className="sidebar-nav">
           <button
             className={activeTab === "dashboard" ? "nav-item active" : "nav-item"}
@@ -148,9 +137,7 @@ function App() {
           <span>Sistem aktif</span>
         </div>
       </aside>
-
       <main className="main">
-        {/* BAGIAN TOPBAR YANG SUDAH DIRAPIKAN DAN DIHAPUS DUPLIKASINYA */}
         <div className="topbar">
           <div>
             <h1 className="page-title">
